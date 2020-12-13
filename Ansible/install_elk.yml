@@ -1,0 +1,45 @@
+---
+- name: Configure elk with docker
+  remote_user: elkadmin
+  hosts: elk
+  become: true
+  tasks:
+
+  - name: install docker.io
+    apt:
+     force_apt_get: yes
+     update_cache: yes
+     name: docker.io
+     state: present
+
+  - name: increase virtual memory command
+    command: sysctl -w vm.max_map_count=262144
+
+  - name: set vm.max.count to 262144 in sysctl
+    sysctl:
+       name: vm.max_map_count
+       value: 262144
+       state: present
+       reload: yes
+
+  - name: install python3-pip
+    apt:
+     force_apt_get: yes
+     name: python3-pip
+     state: present
+
+  - name: install python docker
+    pip:
+     name: docker
+     state: present
+ 
+  - name: download and launch docker elk container
+    docker_container:
+      name: elk
+      image: sebp/elk:761
+      state: started
+      restart_policy: always
+      published_ports:
+         - 5601:5601
+         - 9200:9200
+         - 5044:5044
